@@ -1,5 +1,5 @@
 @(groupNames: List[String],
-isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.Context)
+isCreateRepoOptionPublic: Boolean, isIssuesEnabledRepoOption: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Create a New Repository"){
 <div class="content-wrapper main-center">
@@ -54,6 +54,22 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
           <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
           <div class="normal muted">
             You choose who can see and commit to this repository.
+          </div>
+        </label>
+      </fieldset>
+      <fieldset class="border-top">
+        <label class="radio">
+          <input type="radio" name="isPrivate" value="false" @if(isIssuesEnabledRepoOption){checked}>
+          <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
+          <div class="normal muted">
+            Enable Issues tracker for this repository.
+          </div>
+        </label>
+        <label class="radio">
+          <input type="radio" name="isPrivate" value="true" @if(!isIssuesEnabledRepoOption){checked}>
+          <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
+          <div class="normal muted">
+            Disable Issues tracker for this repository.
           </div>
         </label>
       </fieldset>

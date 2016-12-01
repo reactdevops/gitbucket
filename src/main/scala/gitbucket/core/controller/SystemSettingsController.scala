@@ -28,6 +28,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "allowAnonymousAccess"     -> trim(label("Anonymous access", boolean())),
     "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),
+    "isIssuesEnabledRepoOption" -> trim(label("Default option to enable issues for a new repository", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "activityLogLimit"         -> trim(label("Limit of activity logs", optional(number()))),

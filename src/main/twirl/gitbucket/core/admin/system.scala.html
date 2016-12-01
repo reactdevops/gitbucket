@@ -63,7 +63,7 @@
             </label>
           </fieldset>
           <hr>
-          <label class="strong">Default option to create a new repository</label>
+          <label class="strong">Default options to create a new repository</label>
           <fieldset>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
@@ -72,6 +72,16 @@
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
               <span class="strong">Private</span> <span class="normal">- Only collaborators can read that repository.</span>
+            </label>
+          </fieldset>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="isIssuesEnabledRepoOption" value="true"@if(context.settings.isIssuesEnabledRepoOption){ checked}>
+              <span class="strong">Public</span> <span class="normal">- Enable Issues tracker.</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="isIssuesEnabledRepoOption" value="false"@if(!context.settings.isIssuesEnabledRepoOption){ checked}>
+              <span class="strong">Private</span> <span class="normal">- Disable Issues tracker.</span>
             </label>
           </fieldset>
           <!--====================================================================-->

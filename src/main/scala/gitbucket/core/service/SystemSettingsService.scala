@@ -18,6 +18,7 @@ trait SystemSettingsService {
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
       props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
+      props.setProperty(IsIssuesEnabledRepoOption, settings.isIssuesEnabledRepoOption.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
@@ -73,6 +74,7 @@ trait SystemSettingsService {
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
+        getValue(props, IsIssuesEnabledRepoOption, true),
         getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
@@ -125,6 +127,7 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
+    isIssuesEnabledRepoOption: Boolean,
     gravatar: Boolean,
     notification: Boolean,
     activityLogLimit: Option[Int],
@@ -185,6 +188,7 @@ object SystemSettingsService {
   private val AllowAccountRegistration = "allow_account_registration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
+  private val IsIssuesEnabledRepoOption = "is_issues_enabled_repository_option"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
