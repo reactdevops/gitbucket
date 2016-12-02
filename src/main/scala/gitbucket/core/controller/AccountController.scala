@@ -83,7 +83,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "clearImage" -> trim(label("Clear image" ,boolean()))
   )(EditGroupForm.apply)
 
-  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
+  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean, issuesOption: String, externalIssuesUrl: Option[String])
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
@@ -91,7 +91,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
-    "createReadme" -> trim(label("Create README"  , boolean()))
+    "createReadme" -> trim(label("Create README"  , boolean())),
+    "issuesOption"  -> trim(label("Issue"          , text(required))),
+    "externalIssuesUrl" -> trim(label("External Issue Url"  , optional(text())))
   )(RepositoryCreationForm.apply)
 
   val forkRepositoryForm = mapping(
@@ -347,7 +349,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
-        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme, form.issuesOption, form.externalIssuesUrl)
       }
 
       // redirect to the repository

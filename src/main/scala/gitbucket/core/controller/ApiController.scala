@@ -10,9 +10,9 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.view.helpers.{renderMarkup, isRenderable}
+import gitbucket.core.view.helpers.{ renderMarkup, isRenderable }
 import org.eclipse.jgit.api.Git
-import org.scalatra.{NoContent, UnprocessableEntity, Created}
+import org.scalatra.{ NoContent, UnprocessableEntity, Created }
 import scala.collection.JavaConverters._
 
 class ApiController extends ApiControllerBase
@@ -38,32 +38,18 @@ class ApiController extends ApiControllerBase
   with WritableUsersAuthenticator
 
 trait ApiControllerBase extends ControllerBase {
-  self: RepositoryService
-    with AccountService
-    with ProtectedBranchService
-    with IssuesService
-    with LabelsService
-    with PullRequestService
-    with CommitStatusService
-    with RepositoryCreationService
-    with HandleCommentService
-    with OwnerAuthenticator
-    with UsersAuthenticator
-    with GroupManagerAuthenticator
-    with ReferrerAuthenticator
-    with ReadableUsersAuthenticator
-    with WritableUsersAuthenticator =>
+  self: RepositoryService with AccountService with ProtectedBranchService with IssuesService with LabelsService with PullRequestService with CommitStatusService with RepositoryCreationService with HandleCommentService with OwnerAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReferrerAuthenticator with ReadableUsersAuthenticator with WritableUsersAuthenticator =>
 
   /**
-    * https://developer.github.com/v3/#root-endpoint
-    */
+   * https://developer.github.com/v3/#root-endpoint
+   */
   get("/api/v3/") {
     JsonFormat(ApiEndPoint())
   }
 
   /**
-    * https://developer.github.com/v3/orgs/#get-an-organization
-    */
+   * https://developer.github.com/v3/orgs/#get-an-organization
+   */
   get("/api/v3/orgs/:groupName") {
     getAccountByUserName(params("groupName")).filter(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
@@ -80,30 +66,29 @@ trait ApiControllerBase extends ControllerBase {
   }
 
   /**
-    * https://developer.github.com/v3/repos/#list-organization-repositories
-    */
+   * https://developer.github.com/v3/repos/#list-organization-repositories
+   */
   get("/api/v3/orgs/:orgName/repos") {
-    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("orgName"))).map{ r => ApiRepository(r, getAccountByUserName(r.owner).get)})
+    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("orgName"))).map { r => ApiRepository(r, getAccountByUserName(r.owner).get) })
   }
   /**
    * https://developer.github.com/v3/repos/#list-user-repositories
    */
   get("/api/v3/users/:userName/repos") {
-    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("userName"))).map{ r => ApiRepository(r, getAccountByUserName(r.owner).get)})
+    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("userName"))).map { r => ApiRepository(r, getAccountByUserName(r.owner).get) })
   }
 
   /*
    * https://developer.github.com/v3/repos/branches/#list-branches
    */
-  get ("/api/v3/repos/:owner/:repo/branches")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repo/branches")(referrersOnly { repository =>
     JsonFormat(JGitUtil.getBranches(
-      owner         = repository.owner,
-      name          = repository.name,
+      owner = repository.owner,
+      name = repository.name,
       defaultBranch = repository.repository.defaultBranch,
-      origin        = repository.repository.originUserName.isEmpty
-    ).map { br =>
+      origin = repository.repository.originUserName.isEmpty).map { br =>
         ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
-    })
+      })
   })
 
   /*
@@ -125,7 +110,7 @@ trait ApiControllerBase extends ControllerBase {
     }
     val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
 
-    using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
+    using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
       val fileList = getFileList(git, refStr, path)
       if (fileList.isEmpty) { // file or NotFound
         getFileInfo(git, refStr, path).flatMap(f => {
@@ -139,23 +124,19 @@ trait ApiControllerBase extends ControllerBase {
                 List(
                   "<div data-path=\"", path, "\" id=\"file\">", "<article>",
                   renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
-                  "</article>", "</div>"
-                ).mkString
-              )
+                  "</article>", "</div>").mkString)
             case "application/vnd.github.v3.html" =>
               content.map(c =>
                 List(
                   "<div data-path=\"", path, "\" id=\"file\">", "<div class=\"plain\">", "<pre>",
                   play.twirl.api.HtmlFormat.escape(new String(c)).body,
-                  "</pre>", "</div>", "</div>"
-                ).mkString
-              )
+                  "</pre>", "</div>", "</div>").mkString)
             case _ =>
               Some(JsonFormat(ApiContents(f, content)))
           }
         }).getOrElse(NotFound())
       } else { // directory
-        JsonFormat(fileList.map{f => ApiContents(f, None)})
+        JsonFormat(fileList.map { f => ApiContents(f, None) })
       }
     }
   })
@@ -163,7 +144,7 @@ trait ApiControllerBase extends ControllerBase {
   /*
    * https://developer.github.com/v3/git/refs/#get-a-reference
    */
-  get("/api/v3/repos/:owner/:repo/git/*") (referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repo/git/*")(referrersOnly { repository =>
     val revstr = multiParams("splat").head
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
       //JsonFormat( (revstr, git.getRepository().resolve(revstr)) )
@@ -176,7 +157,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/collaborators/#list-collaborators
    */
-  get("/api/v3/repos/:owner/:repo/collaborators") (referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repo/collaborators")(referrersOnly { repository =>
     // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
     JsonFormat(getCollaboratorUserNames(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
   })
@@ -194,8 +175,8 @@ trait ApiControllerBase extends ControllerBase {
    * List user's own repository
    * https://developer.github.com/v3/repos/#list-your-repositories
    */
-  get("/api/v3/user/repos")(usersOnly{
-    JsonFormat(getVisibleRepositories(context.loginAccount, Option(context.loginAccount.get.userName)).map{
+  get("/api/v3/user/repos")(usersOnly {
+    JsonFormat(getVisibleRepositories(context.loginAccount, Option(context.loginAccount.get.userName)).map {
       r => ApiRepository(r, getAccountByUserName(r.owner).get)
     })
   })
@@ -210,15 +191,14 @@ trait ApiControllerBase extends ControllerBase {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${owner}/${data.name}") {
-        if(getRepository(owner, data.name).isEmpty){
-          createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init)
+        if (getRepository(owner, data.name).isEmpty) {
+          createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init, "PRIVATE", null)
           val repository = getRepository(owner, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
         } else {
           ApiError(
             "A repository with this name already exists on this account",
-            Some("https://developer.github.com/v3/repos/#create")
-          )
+            Some("https://developer.github.com/v3/repos/#create"))
         }
       }
     }) getOrElse NotFound()
@@ -234,15 +214,14 @@ trait ApiControllerBase extends ControllerBase {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${groupName}/${data.name}") {
-        if(getRepository(groupName, data.name).isEmpty){
-          createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init)
+        if (getRepository(groupName, data.name).isEmpty) {
+          createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init, "PRIVATE", null)
           val repository = getRepository(groupName, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {
           ApiError(
             "A repository with this name already exists for this group",
-            Some("https://developer.github.com/v3/repos/#create")
-          )
+            Some("https://developer.github.com/v3/repos/#create"))
         }
       }
     }) getOrElse NotFound()
@@ -253,11 +232,11 @@ trait ApiControllerBase extends ControllerBase {
    */
   patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
-    (for{
+    (for {
       branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
     } yield {
-      if(protection.enabled){
+      if (protection.enabled) {
         enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
       } else {
         disableBranchProtection(repository.owner, repository.name, branch)
@@ -270,7 +249,7 @@ trait ApiControllerBase extends ControllerBase {
    * @see https://developer.github.com/v3/rate_limit/#get-your-current-rate-limit-status
    * but not enabled.
    */
-  get("/api/v3/rate_limit"){
+  get("/api/v3/rate_limit") {
     contentType = formats("json")
     // this message is same as github enterprise...
     org.scalatra.NotFound(ApiError("Rate limiting is not enabled."))
@@ -280,11 +259,11 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
    */
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
-    (for{
+    (for {
       issueId <- params("id").toIntOpt
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
-      JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
+      JsonFormat(comments.map { case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
     }) getOrElse NotFound()
   })
 
@@ -292,12 +271,12 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/comments/#create-a-comment
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
-    (for{
-      issueId      <- params("id").toIntOpt
-      issue        <- getIssue(repository.owner, repository.name, issueId.toString)
-      body         <- extractFromJsonBody[CreateAComment].map(_.body) if ! body.isEmpty
-      action       =  params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
-      (issue, id)  <- handleComment(issue, Some(body), repository, action)
+    (for {
+      issueId <- params("id").toIntOpt
+      issue <- getIssue(repository.owner, repository.name, issueId.toString)
+      body <- extractFromJsonBody[CreateAComment].map(_.body) if !body.isEmpty
+      action = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      (issue, id) <- handleComment(issue, Some(body), repository, action)
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
       JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
@@ -329,7 +308,7 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/labels/#create-a-label
    */
   post("/api/v3/repos/:owner/:repository/labels")(writableUsersOnly { repository =>
-    (for{
+    (for {
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
       LockUtil.lock(RepositoryName(repository).fullName) {
@@ -342,8 +321,7 @@ trait ApiControllerBase extends ControllerBase {
           // TODO ApiError should support errors field to enhance compatibility of GitHub API
           UnprocessableEntity(ApiError(
             "Validation Failed",
-            Some("https://developer.github.com/v3/issues/labels/#create-a-label")
-          ))
+            Some("https://developer.github.com/v3/issues/labels/#create-a-label")))
         }
       }
     }) getOrElse NotFound()
@@ -354,7 +332,7 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/labels/#update-a-label
    */
   patch("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
-    (for{
+    (for {
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
       LockUtil.lock(RepositoryName(repository).fullName) {
@@ -400,19 +378,18 @@ trait ApiControllerBase extends ControllerBase {
     val issues: List[(Issue, Account, Int, PullRequest, Repository, Account)] =
       searchPullRequestByApi(
         condition = condition,
-        offset    = (page - 1) * PullRequestLimit,
-        limit     = PullRequestLimit,
-        repos     = repository.owner -> repository.name
-      )
+        offset = (page - 1) * PullRequestLimit,
+        limit = PullRequestLimit,
+        repos = repository.owner -> repository.name)
 
-    JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
-      ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)
-      )
+    JsonFormat(issues.map {
+      case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+        ApiPullRequest(
+          issue,
+          pullRequest,
+          ApiRepository(headRepo, ApiUser(headOwner)),
+          ApiRepository(repository, ApiUser(baseOwner)),
+          ApiUser(issueUser))
     })
   })
 
@@ -420,14 +397,14 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/pulls/#get-a-single-pull-request
    */
   get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
-    (for{
+    (for {
       issueId <- params("id").toIntOpt
       (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
       users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set())
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
-      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
+      headRepo <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
       JsonFormat(ApiPullRequest(
         issue,
@@ -444,15 +421,16 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
     val owner = repository.owner
     val name = repository.name
-    params("id").toIntOpt.flatMap{ issueId =>
-      getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        using(Git.open(getRepositoryDir(owner, name))){ git =>
-          val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
-          val newId = git.getRepository.resolve(pullreq.commitIdTo)
-          val repoFullName = RepositoryName(repository)
-          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
-          JsonFormat(commits)
-        }
+    params("id").toIntOpt.flatMap { issueId =>
+      getPullRequest(owner, name, issueId) map {
+        case (issue, pullreq) =>
+          using(Git.open(getRepositoryDir(owner, name))) { git =>
+            val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
+            val newId = git.getRepository.resolve(pullreq.commitIdTo)
+            val repoFullName = RepositoryName(repository)
+            val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
+            JsonFormat(commits)
+          }
       }
     } getOrElse NotFound()
   })
@@ -468,7 +446,7 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/statuses/#create-a-status
    */
   post("/api/v3/repos/:owner/:repo/statuses/:sha")(writableUsersOnly { repository =>
-    (for{
+    (for {
       ref <- params.get("sha")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
       data <- extractFromJsonBody[CreateAStatus] if data.isValid
@@ -488,12 +466,13 @@ trait ApiControllerBase extends ControllerBase {
    * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
    */
   val listStatusesRoute = get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
-    (for{
+    (for {
       ref <- params.get("ref")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
-      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
-        ApiCommitStatus(status, ApiUser(creator))
+      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map {
+        case (status, creator) =>
+          ApiCommitStatus(status, ApiUser(creator))
       })
     }) getOrElse NotFound()
   })
@@ -503,7 +482,7 @@ trait ApiControllerBase extends ControllerBase {
    *
    * legacy route
    */
-  get("/api/v3/repos/:owner/:repo/statuses/:ref"){
+  get("/api/v3/repos/:owner/:repo/statuses/:ref") {
     listStatusesRoute.action()
   }
 
@@ -513,7 +492,7 @@ trait ApiControllerBase extends ControllerBase {
    * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
    */
   get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
-    (for{
+    (for {
       ref <- params.get("ref")
       owner <- getAccountByUserName(repository.owner)
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)

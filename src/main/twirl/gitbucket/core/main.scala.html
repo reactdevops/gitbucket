@@ -63,6 +63,10 @@
             </form>
           }
           <ul class="pc nav navbar-nav">
+            @if(context.loginAccount.isDefined){
+              <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
+              <li><a href="@context.path/dashboard/issues">Issues</a></li>
+            }          
             @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
               @menu(context).map { link =>
                 <li><a href="@context.path/@link.path">@link.label</a></li>

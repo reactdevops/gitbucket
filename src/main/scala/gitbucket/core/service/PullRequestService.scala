@@ -141,6 +141,7 @@ trait PullRequestService { self: IssuesService =>
 
 object PullRequestService {
 
+  val isEnabled = true
   val PullRequestLimit = 25
 
   case class PullRequestCount(userName: String, count: Int)

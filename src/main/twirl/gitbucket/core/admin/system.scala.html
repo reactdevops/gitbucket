@@ -51,8 +51,8 @@
           <!-- Account registration -->
           <!--====================================================================-->
           <hr>
-          <label class="strong">Account registration</label>
           <fieldset>
+            <label class="strong">Account registration</label>
             <label class="radio">
               <input type="radio" name="allowAccountRegistration" value="true"@if(context.settings.allowAccountRegistration){ checked}>
               <span class="strong">Allow</span> <span class="normal">- Users can create accounts by themselves.</span>
@@ -63,8 +63,8 @@
             </label>
           </fieldset>
           <hr>
-          <label class="strong">Default options to create a new repository</label>
           <fieldset>
+            <label class="strong">Default visibility for a new repository</label>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
               <span class="strong">Public</span> <span class="normal">- All users and guests can read that repository.</span>
@@ -74,14 +74,16 @@
               <span class="strong">Private</span> <span class="normal">- Only collaborators can read that repository.</span>
             </label>
           </fieldset>
+          <hr>
           <fieldset>
+            <label class="strong">Default built in issue tracker enabled for a new repository</label>
             <label class="radio">
               <input type="radio" name="isIssuesEnabledRepoOption" value="true"@if(context.settings.isIssuesEnabledRepoOption){ checked}>
-              <span class="strong">Public</span> <span class="normal">- Enable Issues tracker.</span>
+              <span class="strong">Enabled</span> <span class="normal">- Enable built in issue tracker.</span>
             </label>
             <label class="radio">
               <input type="radio" name="isIssuesEnabledRepoOption" value="false"@if(!context.settings.isIssuesEnabledRepoOption){ checked}>
-              <span class="strong">Private</span> <span class="normal">- Disable Issues tracker.</span>
+              <span class="strong">Disabled</span> <span class="normal">- Disable built in issue tracker.</span>
             </label>
           </fieldset>
           <!--====================================================================-->
